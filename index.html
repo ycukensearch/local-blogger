@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Локальный Блоггер</title>
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+<style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+        font-family: 'Roboto', sans-serif;
+        background-color: #e0e0e0;
+        display: flex;
+        justify-content: center;
+        min-height: 100vh;
+        padding: 20px;
+    }
+
+    .app-container {
+        max-width: 800px;
+        width: 100%;
+        background-color: #ffffff;
+        border-radius: 8px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        min-height: 600px;
+    }
+
+    .app-bar {
+        background-color: #ff9800;
+        color: #fff;
+        padding: 16px 24px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        flex-wrap: wrap;
+        gap: 12px;
+    }
+
+    .app-bar h1 { font-size: 24px; font-weight: 500; letter-spacing: 0.5px; }
+
+    .user-info { display: flex; align-items: center; gap: 12px; font-size: 16px; }
+
+    .user-info button {
+        background: none;
+        border: 1px solid rgba(255, 255, 255, 0.6);
+        color: #fff;
+        padding: 6px 16px;
+        border-radius: 4px;
+        font-size: 14px;
+        cursor: pointer;
+        font-weight: 500;
+        font-family: inherit;
+        transition: background 0.2s;
+    }
+
+    .user-info button:hover { background: rgba(255, 255, 255, 0.15); }
+
+    .content { padding: 24px; flex: 1; }
+
+    .screen { display: none; }
+    .screen.active { display: block; }
+    .screen h2 { margin-bottom: 24px; font-weight: 400; color: #212121; }
+
+    .input-group { position: relative; margin-bottom: 32px; }
+
+    .input-group input,
+    .input-group textarea {
+        width: 100%;
+        border: none;
+        border-bottom: 2px solid #9e9e9e;
+        padding: 12px 0 8px 0;
+        font-size: 16px;
+        font-family: 'Roboto', sans-serif;
+        background: transparent;
+        outline: none;
+        transition: border-color 0.3s;
+        color: #212121;
+    }
+
+    .input-group textarea { min-height: 140px; resize: vertical; line-height: 1.5; }
+
+    .input-group input:focus,
+    .input-group textarea:focus { border-bottom-color: #ff9800; }
+
+    .input-group label {
+        position: absolute;
+        top: 12px;
+        left: 0;
+        color: #757575;
+        font-size: 16px;
+        pointer-events: none;
+        transition: 0.2s ease all;
+    }
+
+    .input-group input:focus ~ label,
+    .input-group input:not(:placeholder-shown) ~ label,
+    .input-group textarea:focus ~ label,
+    .input-group textarea:not(:placeholder-shown) ~ label {
+        top: -12px;
+        font-size: 12px;
+        color: #ff9800;
+    }
+
+    .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        padding: 10px 24px;
+        font-size: 15px;
+        font-weight: 500;
+        font-family: 'Roboto', sans-serif;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        transition: background 0.2s, box-shadow 0.2s;
+        background-color: #ff9800;
+        color: #fff;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    }
+
+    .btn:hover { background-color: #f57c00; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3); }
+    .btn:active { box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3); }
+    .btn .material-icons { font-size: 18px; }
+
+    .btn-secondary {
+        background-color: transparent;
+        color: #ff9800;
+        box-shadow: none;
+        border: 1px solid #ff9800;
+    }
+
+    .btn-secondary:hover { background-color: rgba(255, 152, 0, 0.08); }
+
+    .btn-small { padding: 6px 16px; font-size: 13px; }
+
+    .btn-group { display: flex; gap: 12px; flex-wrap: wrap; }
+
+    .post-list { display: flex; flex-direction: column; gap: 16px; margin-top: 16px; }
+
+    .post-card {
+        background-color: #f5f5f5;
+        border-radius: 4px;
+        padding: 16px 20px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+        transition: box-shadow 0.2s;
+    }
+
+    .post-card:hover { box-shadow: 0 3px 6px rgba(0, 0, 0, 0.16); }
+
+    .post-card h3 {
+        font-size: 20px;
+        font-weight: 500;
+        color: #212121;
+        margin-bottom: 8px;
+        word-break: break-word;
+    }
+
+    .post-card .post-meta { font-size: 12px; color: #757575; margin-bottom: 12px; }
+
+    .post-card .post-content {
+        font-size: 15px;
+        line-height: 1.5;
+        color: #424242;
+        white-space: pre-wrap;
+        word-break: break-word;
+    }
+
+    .empty-message { text-align: center; color: #9e9e9e; padding: 40px 0; font-size: 16px; }
+
+    .error-message {
+        color: #f44336;
+        font-size: 14px;
+        margin-bottom: 16px;
+        display: none;
+    }
+
+    .error-message.visible { display: block; }
+
+    .header-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 16px;
+        flex-wrap: wrap;
+        gap: 12px;
+    }
+
+    .header-row h2 { margin-bottom: 0; }
+
+    @media (max-width: 600px) {
+        .app-bar { flex-direction: column; align-items: flex-start; }
+        .user-info { width: 100%; justify-content: space-between; }
+        .content { padding: 16px; }
+        .btn-group { flex-direction: column; }
+        .btn-group .btn { width: 100%; }
+    }
+</style>
+</head>
+<body>
+
+<div class="app-container">
+    <header class="app-bar">
+        <h1>Локальный Блоггер</h1>
+        <div class="user-info" id="userInfo" style="display:none;">
+            <span id="userNameDisplay"></span>
+            <button id="logoutBtn" type="button">Выйти</button>
+        </div>
+    </header>
+
+    <div class="content">
+
+        <div id="authScreen" class="screen active">
+            <h2>Добро пожаловать</h2>
+            <div class="input-group">
+                <input type="text" id="loginInput" placeholder=" " autocomplete="username">
+                <label for="loginInput">Логин</label>
+            </div>
+            <div class="input-group">
+                <input type="password" id="passwordInput" placeholder=" " autocomplete="current-password">
+                <label for="passwordInput">Пароль</label>
+            </div>
+            <div id="authError" class="error-message"></div>
+            <div class="btn-group">
+                <button class="btn" id="registerBtn" type="button">
+                    <span class="material-icons">person_add</span> Зарегистрироваться
+                </button>
+                <button class="btn btn-secondary" id="loginBtn" type="button">
+                    <span class="material-icons">login</span> Войти
+                </button>
+            </div>
+        </div>
+
+        <div id="createScreen" class="screen">
+            <h2>Новый пост</h2>
+            <div class="input-group">
+                <input type="text" id="postTitle" placeholder=" " autocomplete="off">
+                <label for="postTitle">Название поста</label>
+            </div>
+            <div class="input-group">
+                <textarea id="postContent" placeholder=" "></textarea>
+                <label for="postContent">Содержание</label>
+            </div>
+            <div id="postError" class="error-message"></div>
+            <div class="btn-group">
+                <button class="btn" id="publishBtn" type="button">
+                    <span class="material-icons">publish</span> Опубликовать
+                </button>
+                <button class="btn btn-secondary" id="viewPostsFromCreateBtn" type="button">
+                    <span class="material-icons">list</span> Все посты
+                </button>
+            </div>
+        </div>
+
+        <div id="postsScreen" class="screen">
+            <div class="header-row">
+                <h2>Все посты</h2>
+                <button class="btn btn-small" id="newPostBtn" type="button">
+                    <span class="material-icons">add</span> Новый пост
+                </button>
+            </div>
+            <div id="postsList" class="post-list"></div>
+        </div>
+
+    </div>
+</div>
+
+<script>
+(function () {
+    'use strict';
+
+    var memoryStore = {};
+    var storageMode = 'memory';
+
+    function testStorage(storage) {
+        try {
+            var k = '__test__' + Math.random();
+            storage.setItem(k, '1');
+            var v = storage.getItem(k);
+            storage.removeItem(k);
+            return v === '1';
+        } catch (e) { return false; }
+    }
+
+    var activeStorage = null;
+    if (testStorage(window.localStorage)) {
+        activeStorage = window.localStorage;
+        storageMode = 'local';
+    } else if (testStorage(window.sessionStorage)) {
+        activeStorage = window.sessionStorage;
+        storageMode = 'session';
+    }
+
+    console.log('Локальный Блоггер: режим хранения =', storageMode);
+
+    function storageGet(key) {
+        if (activeStorage) {
+            try { return activeStorage.getItem(key); }
+            catch (e) { return memoryStore[key] || null; }
+        }
+        return memoryStore[key] || null;
+    }
+    function storageSet(key, value) {
+        if (activeStorage) {
+            try { activeStorage.setItem(key, value); return true; }
+            catch (e) { memoryStore[key] = value; return true; }
+        }
+        memoryStore[key] = value;
+        return true;
+    }
+    function storageRemove(key) {
+        if (activeStorage) { try { activeStorage.removeItem(key); } catch (e) {} }
+        delete memoryStore[key];
+    }
+
+    var USERS_KEY = 'local_blogger_users';
+    var POSTS_KEY = 'local_blogger_posts';
+    var CURRENT_USER_KEY = 'local_blogger_current_user';
+
+    var currentUser = null;
+
+    function getUsers() {
+        var raw = storageGet(USERS_KEY);
+        if (!raw) return [];
+        try { return JSON.parse(raw) || []; } catch (e) { return []; }
+    }
+    function saveUsers(users) { storageSet(USERS_KEY, JSON.stringify(users)); }
+    function getPosts() {
+        var raw = storageGet(POSTS_KEY);
+        if (!raw) return [];
+        try { return JSON.parse(raw) || []; } catch (e) { return []; }
+    }
+    function savePosts(posts) { storageSet(POSTS_KEY, JSON.stringify(posts)); }
+    function saveCurrentUser(user) {
+        if (user) storageSet(CURRENT_USER_KEY, JSON.stringify(user));
+        else storageRemove(CURRENT_USER_KEY);
+    }
+    function loadCurrentUser() {
+        var raw = storageGet(CURRENT_USER_KEY);
+        if (!raw) return null;
+        try { return JSON.parse(raw); } catch (e) { return null; }
+    }
+
+    function simpleHash(str) {
+        var hash = 0;
+        for (var i = 0; i < str.length; i++) {
+            var c = str.charCodeAt(i);
+            hash = ((hash << 5) - hash) + c;
+            hash = hash & hash;
+        }
+        return hash.toString(16);
+    }
+
+    function formatDate(iso) {
+        try {
+            var d = new Date(iso);
+            return d.toLocaleString('ru-RU', {
+                day: '2-digit', month: '2-digit', year: 'numeric',
+                hour: '2-digit', minute: '2-digit'
+            });
+        } catch (e) { return iso; }
+    }
+
+    function escapeHtml(text) {
+        var div = document.createElement('div');
+        div.textContent = String(text);
+        return div.innerHTML;
+    }
+
+    function $(id) { return document.getElementById(id); }
+
+    function clearErrors() {
+        var ids = ['authError', 'postError'];
+        for (var i = 0; i < ids.length; i++) {
+            var el = $(ids[i]);
+            if (el) { el.classList.remove('visible'); el.textContent = ''; }
+        }
+    }
+
+    function showError(id, message) {
+        var el = $(id);
+        if (el) { el.textContent = message; el.classList.add('visible'); }
+    }
+
+    function showScreen(screenId) {
+        var screens = document.querySelectorAll('.screen');
+        for (var i = 0; i < screens.length; i++) screens[i].classList.remove('active');
+        var target = $(screenId);
+        if (target) target.classList.add('active');
+        clearErrors();
+        updateUserInfo();
+        if (screenId === 'postsScreen') renderPosts();
+    }
+
+    function updateUserInfo() {
+        var info = $('userInfo');
+        var nameEl = $('userNameDisplay');
+        if (!info || !nameEl) return;
+        if (currentUser) {
+            info.style.display = 'flex';
+            nameEl.textContent = currentUser.login;
+        } else {
+            info.style.display = 'none';
+        }
+    }
+
+    function register() {
+        var loginEl = $('loginInput');
+        var passEl = $('passwordInput');
+        var login = loginEl ? loginEl.value.trim() : '';
+        var password = passEl ? passEl.value.trim() : '';
+
+        if (!login || !password) { showError('authError', 'Пожалуйста, заполните все поля.'); return; }
+        if (password.length < 3) { showError('authError', 'Пароль должен быть не короче 3 символов.'); return; }
+
+        var users = getUsers();
+        for (var i = 0; i < users.length; i++) {
+            if (users[i].login === login) {
+                showError('authError', 'Пользователь с таким логином уже существует.');
+                return;
+            }
+        }
+
+        users.push({ login: login, passwordHash: simpleHash(password) });
+        saveUsers(users);
+        currentUser = { login: login };
+        saveCurrentUser(currentUser);
+        loginEl.value = '';
+        passEl.value = '';
+        showScreen('createScreen');
+    }
+
+    function login() {
+        var loginEl = $('loginInput');
+        var passEl = $('passwordInput');
+        var login = loginEl ? loginEl.value.trim() : '';
+        var password = passEl ? passEl.value.trim() : '';
+
+        if (!login || !password) { showError('authError', 'Пожалуйста, заполните все поля.'); return; }
+
+        var users = getUsers();
+        var user = null;
+        for (var i = 0; i < users.length; i++) {
+            if (users[i].login === login) { user = users[i]; break; }
+        }
+
+        if (!user) { showError('authError', 'Пользователь не найден. Зарегистрируйтесь.'); return; }
+        if (user.passwordHash !== simpleHash(password)) { showError('authError', 'Неверный пароль.'); return; }
+
+        currentUser = { login: login };
+        saveCurrentUser(currentUser);
+        loginEl.value = '';
+        passEl.value = '';
+        showScreen('createScreen');
+    }
+
+    function logout() {
+        currentUser = null;
+        saveCurrentUser(null);
+        var loginEl = $('loginInput');
+        var passEl = $('passwordInput');
+        if (loginEl) loginEl.value = '';
+        if (passEl) passEl.value = '';
+        showScreen('authScreen');
+    }
+
+    function publishPost() {
+        var titleEl = $('postTitle');
+        var contentEl = $('postContent');
+        var title = titleEl ? titleEl.value.trim() : '';
+        var content = contentEl ? contentEl.value.trim() : '';
+
+        if (!title) { showError('postError', 'Введите название поста.'); return; }
+        if (!content) { showError('postError', 'Введите содержание поста.'); return; }
+        if (!currentUser) { showError('postError', 'Вы не авторизованы.'); return; }
+
+        var posts = getPosts();
+        posts.push({
+            id: Date.now().toString(36) + Math.random().toString(36).slice(2, 7),
+            author: currentUser.login,
+            title: title,
+            content: content,
+            createdAt: new Date().toISOString()
+        });
+        savePosts(posts);
+        titleEl.value = '';
+        contentEl.value = '';
+        showScreen('postsScreen');
+    }
+
+    function renderPosts() {
+        var list = $('postsList');
+        if (!list) return;
+        var posts = getPosts();
+        posts.sort(function (a, b) { return new Date(b.createdAt) - new Date(a.createdAt); });
+
+        if (posts.length === 0) {
+            list.innerHTML = '<div class="empty-message">Пока нет ни одного поста. Создайте первый!</div>';
+            return;
+        }
+
+        var html = '';
+        for (var i = 0; i < posts.length; i++) {
+            var p = posts[i];
+            html += '<div class="post-card">'
+                + '<h3>' + escapeHtml(p.title) + '</h3>'
+                + '<div class="post-meta">Автор: ' + escapeHtml(p.author)
+                + ' | ' + formatDate(p.createdAt) + '</div>'
+                + '<div class="post-content">' + escapeHtml(p.content) + '</div>'
+                + '</div>';
+        }
+        list.innerHTML = html;
+    }
+
+    function bind(id, event, handler) {
+        var el = $(id);
+        if (el) el.addEventListener(event, handler);
+        else console.warn('Не найден элемент: #' + id);
+    }
+
+    function init() {
+        bind('registerBtn', 'click', register);
+        bind('loginBtn', 'click', login);
+        bind('logoutBtn', 'click', logout);
+        bind('publishBtn', 'click', publishPost);
+        bind('newPostBtn', 'click', function () { showScreen('createScreen'); });
+        bind('viewPostsFromCreateBtn', 'click', function () { showScreen('postsScreen'); });
+        bind('passwordInput', 'keypress', function (e) {
+            if (e.key === 'Enter' || e.keyCode === 13) login();
+        });
+        bind('loginInput', 'keypress', function (e) {
+            if (e.key === 'Enter' || e.keyCode === 13) {
+                var p = $('passwordInput');
+                if (p) p.focus();
+            }
+        });
+        currentUser = loadCurrentUser();
+        showScreen(currentUser ? 'createScreen' : 'authScreen');
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init);
+    } else {
+        init();
+    }
+})();
+</script>
+
+</body>
+  </html>
